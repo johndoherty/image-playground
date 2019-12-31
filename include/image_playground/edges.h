@@ -2,4 +2,4 @@
 
 #include "image_playground/image.h"
 
-std::unique_ptr<Image> MakeEdgeImage(const std::unique_ptr<Image>& image);
+FloatImage MakeEdgeImage(const FloatImage& image);

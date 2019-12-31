@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <string>
 
-#include "image_playground/image.h"
 #include "image_playground/edges.h"
+#include "image_playground/gray_scale.h"
+#include "image_playground/image.h"
 
 const char * default_image = "/Users/john/Desktop/P8023034.jpg";
 const char * default_output_image = "output.png";
@@ -15,11 +16,10 @@ int main(int argc, char* argv[]) {
     }
 
     const std::string filename(image_file);
-    const std::unique_ptr<Image> image = ImageFromFile(filename);
-    printf("Rows: %d, Cols: %d, N: %d, data: %p\n",
-        image->rows, image->cols, image->n, image->data);
+    const RGBImage image = RGBImageFromFile(filename);
+    const FloatImage gray_image = MakeGrayScaleImage(image);
 
-    const std::unique_ptr<Image> edge_image = MakeEdgeImage(image);
+    const Image edge_image = MakeEdgeImage(gray_image);
     const std::string output_filename(default_output_image);
     WriteImageToPNG(edge_image, output_filename);
 

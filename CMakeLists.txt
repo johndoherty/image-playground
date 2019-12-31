@@ -9,7 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_subdirectory(external)
 
-set(SOURCE src/main.cpp src/image.cpp src/edges.cpp)
+set(SOURCE src/main.cpp src/image.cpp src/edges.cpp src/gray_scale.cpp)
 
 add_executable(image_playground ${SOURCE})
 target_include_directories(image_playground PUBLIC include)
