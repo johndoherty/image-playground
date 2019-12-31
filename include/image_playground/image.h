@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 
 template <typename T> struct Image {
@@ -61,7 +62,7 @@ using FloatImage = Image<float>;
 using RGBImage = Image<RGB>;
 using RGBAImage = Image<RGBA>;
 
-RGBImage RGBImageFromFile(const std::string &filename);
+std::optional<RGBImage> RGBImageFromFile(const std::string &filename);
 
 void WriteImageToPNG(const ByteImage &image, const std::string &filename);
 void WriteImageToPNG(const FloatImage &image, const std::string &filename);

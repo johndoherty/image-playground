@@ -25,12 +25,18 @@ void WriteImageToPNG(const Image<T> &image, const std::string &filename) {
 
 } // namespace internal
 
-RGBImage RGBImageFromFile(const std::string &filename) {
+std::optional<RGBImage> RGBImageFromFile(const std::string &filename) {
   int x = 0;
   int y = 0;
   int n = 0;
 
   uint8_t *data = stbi_load(filename.c_str(), &x, &y, &n, 3);
+
+  if (!data) {
+    printf("Unable to load image from file: %s\n", filename.c_str());
+    return {};
+  }
+
   RGBImage image(y, x);
   memcpy(image.data, data, ComputeImageSize(image));
   stbi_image_free(data);
