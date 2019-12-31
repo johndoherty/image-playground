@@ -2,4 +2,4 @@
 
 #include "image_playground/image.h"
 
-FloatImage MakeEdgeImage(const FloatImage& image);
+FloatImage MakeEdgeImage(const FloatImage &image);
