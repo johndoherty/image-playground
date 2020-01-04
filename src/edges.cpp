@@ -33,7 +33,6 @@ int ComputeRank(const FloatImage &input) {
     }
 
     if (row != rows) {
-      PrintImageValues(mutable_input);
       rank++;
       row_selected[row] = true;
 

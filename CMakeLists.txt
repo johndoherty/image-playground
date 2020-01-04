@@ -9,7 +9,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_subdirectory(external)
 
-set(SOURCE src/image.cpp src/edges.cpp src/gray_scale.cpp src/convolve.cpp src/file_helpers.cpp)
+set(SOURCE
+    src/convolve.cpp
+    src/edges.cpp
+    src/file_helpers.cpp
+    src/fourier.cpp
+    src/gray_scale.cpp
+    src/image.cpp)
 
 add_library(image_playground ${SOURCE})
 target_include_directories(image_playground PUBLIC include)

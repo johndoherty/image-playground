@@ -54,7 +54,8 @@ void WriteImageToPNG(const FloatImage &image, const std::string &filename) {
   ByteImage byte_image(image.rows, image.cols);
 
   for (int i = 0; i < elements; i++) {
-    byte_image.data[i] = static_cast<uint8_t>(image.data[i] * 255.f);
+    const float clamped = std::max(std::min(image.data[i], 1.f), 0.f);
+    byte_image.data[i] = static_cast<uint8_t>(clamped * 255.f);
   }
 
   internal::WriteImageToPNG(byte_image, filename);
