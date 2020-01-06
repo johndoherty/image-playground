@@ -35,8 +35,8 @@ void FourierTransform(const FloatImage &image, FloatImage &real,
     }
   }
 
-  FloatImage real_result(image.rows, image.cols);
-  FloatImage imaginary_result(image.rows, image.cols);
+  assert(real.rows == image.rows && real.cols == image.cols);
+  assert(imaginary.rows == image.rows && imaginary.cols == image.cols);
 
   // TODO: Do a transpose
   for (int col = 0; col < image.cols; col++) {
@@ -65,13 +65,32 @@ void FourierTransform(const FloatImage &image, FloatImage &real,
       const float real_value = real_sum / rows_float;
       const float imaginary_value = imaginary_sum / rows_float;
 
-      real_result.data[output_index] = real_value;
-      imaginary_result.data[output_index] = imaginary_value;
+      real.data[output_index] = real_value;
+      imaginary.data[output_index] = imaginary_value;
     }
   }
+}
 
-  real = std::move(real_result);
-  imaginary_result = std::move(imaginary_result);
+void ScaleImageRange(FloatImage &image) {
+  const int size = image.rows * image.cols;
+
+  float max = std::numeric_limits<float>::lowest();
+  float min = std::numeric_limits<float>::max();
+
+  for (int i = 0; i < size; i++) {
+    const float value = image.data[i];
+    max = std::max(max, value);
+    min = std::min(min, value);
+  }
+
+  const float range = max - min;
+  const float scale = 1.f / range;
+
+  for (int i = 0; i < size; i++) {
+    const float value = image.data[i];
+    const float scaled = (value - min) * scale;
+    image.data[i] = scaled;
+  }
 }
 
 FloatImage FourierTransformForVisualizing(const FloatImage &image) {
@@ -83,32 +102,36 @@ FloatImage FourierTransformForVisualizing(const FloatImage &image) {
   FloatImage magnitude_result(image.rows, image.cols);
 
   const int size = image.rows * image.cols;
-  float max_mag = 0.f;
 
   for (int i = 0; i < size; i++) {
     const float real_sq = real_result.data[i] * real_result.data[i];
     const float img_sq = imaginary_result.data[i] * imaginary_result.data[i];
     const float mag = sqrt(real_sq + img_sq);
-    // magnitude_result.data[i] = log(mag + 1.f);
     magnitude_result.data[i] = mag;
-    max_mag = std::max(magnitude_result.data[i], max_mag);
   }
+
+  ScaleImageRange(magnitude_result);
+
+  for (int i = 0; i < size; i++) {
+    magnitude_result.data[i] = log((magnitude_result.data[i] * 255.f) + 1.f);
+  }
+
+  ScaleImageRange(magnitude_result);
 
   FloatImage recentered_result(image.rows, image.cols);
   for (int i = 0; i < size; i++) {
-    magnitude_result.data[i] /= max_mag;
     recentered_result.data[i] = 0.f;
   }
 
   const int center_row = image.rows / 2;
   const int center_col = image.cols / 2;
 
-  for (int original_row = 0; original_row < image.rows; original_row++) {
-    for (int original_col = 0; original_col < image.cols; original_col++) {
-      const int mapped_row_1 = center_row + (original_row / 2);
-      const int mapped_row_2 = center_row - (original_row / 2);
-      const int mapped_col_1 = center_row + (original_col / 2);
-      const int mapped_col_2 = center_row - (original_col / 2);
+  for (int original_row = 0; original_row < image.rows / 2; original_row++) {
+    for (int original_col = 0; original_col < image.cols / 2; original_col++) {
+      const int mapped_row_1 = center_row + (original_row);
+      const int mapped_row_2 = center_row - (original_row);
+      const int mapped_col_1 = center_row + (original_col);
+      const int mapped_col_2 = center_row - (original_col);
 
       const int index_1 = (mapped_row_1 * image.cols) + mapped_col_1;
       const int index_2 = (mapped_row_1 * image.cols) + mapped_col_2;
@@ -118,12 +141,14 @@ FloatImage FourierTransformForVisualizing(const FloatImage &image) {
       const int original_index = (original_row * image.cols) + original_col;
       const float original = magnitude_result.data[original_index];
 
-      recentered_result.data[index_1] += original;
-      recentered_result.data[index_2] += original;
-      recentered_result.data[index_3] += original;
-      recentered_result.data[index_4] += original;
+      recentered_result.data[index_1] = original;
+      recentered_result.data[index_2] = original;
+      recentered_result.data[index_3] = original;
+      recentered_result.data[index_4] = original;
     }
   }
+
+  ScaleImageRange(magnitude_result);
 
   return recentered_result;
 }

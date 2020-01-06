@@ -1,8 +1,11 @@
+#include <cmath>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 
+#include "image_playground/blur.h"
+#include "image_playground/convolve.h"
 #include "image_playground/edges.h"
 #include "image_playground/file_helpers.h"
 #include "image_playground/fourier.h"
@@ -20,6 +23,8 @@ const char *default_image = "assets/cln1.jpg";
 const char *default_fourier_image = "outputs/cln_fourier.png";
 const char *default_output_image = "outputs/cln_edges.png";
 const char *default_output_fourier_image = "outputs/cln_edges_fourier.png";
+const char *default_blur_image = "outputs/cln_blur.png";
+const char *default_blur_fourier_image = "outputs/cln_blur_fourier.png";
 #endif
 
 int main(int argc, char *argv[]) {
@@ -40,6 +45,12 @@ int main(int argc, char *argv[]) {
       examples_directory / default_output_fourier_image;
 
   std::filesystem::path output_file = examples_directory / default_output_image;
+
+  std::filesystem::path blur_fourier_file =
+      examples_directory / default_blur_fourier_image;
+
+  std::filesystem::path blur_file = examples_directory / default_blur_image;
+
   std::optional<RGBImage> image_optional = RGBImageFromFile(input_file);
 
   if (!image_optional) {
@@ -51,6 +62,12 @@ int main(int argc, char *argv[]) {
 
   const FloatImage input_fourier = FourierTransformForVisualizing(gray_image);
   WriteImageToPNG(input_fourier, fourier_file);
+
+  const FloatImage blur_image = MakeBlurImage(gray_image);
+  WriteImageToPNG(blur_image, blur_file);
+
+  const FloatImage blur_fourier = FourierTransformForVisualizing(blur_image);
+  WriteImageToPNG(blur_fourier, blur_fourier_file);
 
   const FloatImage edge_image = MakeEdgeImage(gray_image);
   WriteImageToPNG(edge_image, output_file);

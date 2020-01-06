@@ -10,7 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_subdirectory(external)
 
 set(SOURCE
-    src/convolve.cpp
+    src/blur.cpp
     src/edges.cpp
     src/file_helpers.cpp
     src/fourier.cpp

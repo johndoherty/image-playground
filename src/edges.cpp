@@ -84,31 +84,21 @@ float GuassianKernelValue(float mid_x, float mid_y, float standard_deviation) {
   return value;
 }
 
-FloatImage MakeKernel(int n, float standard_deviation) {
-  FloatImage result(n, n);
-  FloatImage test(n, n);
+template <int KernelWidth>
+void MakeKernel(float standard_deviation, Kernel<KernelWidth> &kernel) {
+  static_assert(KernelWidth % 2 != 0, "Only odd sized kernels are allowed\n");
 
-  if (n % 2 == 0) {
-    printf("Only odd sized kernels are allowed\n");
-    return result;
-  }
-
-  const int center_point = n / 2;
+  constexpr int kCenterPoint = KernelWidth / 2;
 
   int index = 0;
-  for (int row = 0; row < n; row++) {
-    for (int col = 0; col < n; col++) {
-      const float x = static_cast<float>(col - center_point);
-      const float y = static_cast<float>(row - center_point);
+  for (int row = 0; row < KernelWidth; row++) {
+    for (int col = 0; col < KernelWidth; col++) {
+      const float x = static_cast<float>(col - kCenterPoint);
+      const float y = static_cast<float>(row - kCenterPoint);
       const float value = GuassianKernelValue(x, y, standard_deviation);
-      result.data[index++] = value;
+      kernel.values[index++] = value;
     }
   }
-
-  const int rank = ComputeRank(result);
-  printf("Rank: %d\n", rank);
-
-  return result;
 }
 
 void PrintImageValues(const FloatImage &image) {
@@ -133,8 +123,11 @@ FloatImage MakeEdgeImage(const FloatImage &input) {
   constexpr float kInnerSTD = 1;
   constexpr float kOuterSTD = 3;
 
-  const FloatImage inner_kernel = MakeKernel(kKernelWidth, kInnerSTD);
-  const FloatImage outer_kernel = MakeKernel(kKernelWidth, kOuterSTD);
+  Kernel<kKernelWidth> inner_kernel{};
+  MakeKernel<kKernelWidth>(kInnerSTD, inner_kernel);
+
+  Kernel<kKernelWidth> outer_kernel{};
+  MakeKernel<kKernelWidth>(kOuterSTD, outer_kernel);
 
   const FloatImage inner = Convolve(input, inner_kernel);
   const FloatImage outer = Convolve(input, outer_kernel);
