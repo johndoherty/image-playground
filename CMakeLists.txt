@@ -11,6 +11,7 @@ add_subdirectory(external)
 
 set(SOURCE
     src/blur.cpp
+    src/color.cpp
     src/convolve.cpp
     src/edges.cpp
     src/file_helpers.cpp

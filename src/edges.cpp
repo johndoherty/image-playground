@@ -1,9 +1,7 @@
 #include "image_playground/edges.h"
 #include "image_playground/convolve.h"
+#include "image_playground/math.h"
 
-#include <algorithm>
-#include <cmath>
-#include <type_traits>
 #include <vector>
 
 #define PI 3.14159265359f
@@ -28,7 +26,7 @@ int ComputeRank(const FloatImage &input) {
     int row;
     for (row = 0; row < rows; ++row) {
       if (!row_selected[row] &&
-          abs(data[ComputeIndex(cols, row, col)]) > kEpsilon)
+          Abs(data[ComputeIndex(cols, row, col)]) > kEpsilon)
         break;
     }
 
@@ -41,7 +39,7 @@ int ComputeRank(const FloatImage &input) {
       }
 
       for (int k = 0; k < rows; ++k) {
-        if (k != row && abs(data[ComputeIndex(cols, k, col)]) > kEpsilon) {
+        if (k != row && Abs(data[ComputeIndex(cols, k, col)]) > kEpsilon) {
           for (int p = col + 1; p < cols; ++p)
             data[ComputeIndex(cols, k, p)] -= data[ComputeIndex(cols, row, p)] *
                                               data[ComputeIndex(cols, k, col)];

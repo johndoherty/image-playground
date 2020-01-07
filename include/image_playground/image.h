@@ -1,6 +1,6 @@
 #pragma once
 
-#include "image_playground/types.h"
+#include "image_playground/color.h"
 
 template <typename T> struct Image {
   static constexpr int kDataSize = sizeof(T);

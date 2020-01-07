@@ -1,10 +1,7 @@
 #include "image_playground/blur.h"
 #include "image_playground/convolve.h"
 
-#include <algorithm>
 #include <cmath>
-#include <type_traits>
-#include <vector>
 
 #define PI 3.14159265359f
 

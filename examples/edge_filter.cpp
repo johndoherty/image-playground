@@ -1,79 +1,69 @@
-#include <cmath>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 
 #include "image_playground/blur.h"
-#include "image_playground/convolve.h"
 #include "image_playground/edges.h"
 #include "image_playground/file_helpers.h"
 #include "image_playground/fourier.h"
 #include "image_playground/gray_scale.h"
 #include "image_playground/image.h"
 
-// TODO: Fourier output should be based on input file name
-#if 0
-const char *default_image = "assets/wales.jpg";
-const char *default_fourier_image = "outputs/wales_fourier.jpg";
-const char *default_output_image = "outputs/wales_edges.png";
-const char *default_output_fourier_image = "outputs/wales_edges_fourier.png";
-#else
-const char *default_image = "assets/cln1.jpg";
-const char *default_fourier_image = "outputs/cln_fourier.png";
-const char *default_output_image = "outputs/cln_edges.png";
-const char *default_output_fourier_image = "outputs/cln_edges_fourier.png";
-const char *default_blur_image = "outputs/cln_blur.png";
-const char *default_blur_fourier_image = "outputs/cln_blur_fourier.png";
-#endif
+const char *default_assets = "assets";
+const char *default_output = "outputs";
+
+// const char *default_image_name = "wales.jpg";
+const char *default_image_name = "cln1.jpg";
 
 int main(int argc, char *argv[]) {
-  std::filesystem::path examples_directory =
-      GetImagePlaygroundRoot() / "examples";
+  using namespace std;
+  using namespace filesystem;
 
-  std::filesystem::path input_file;
+  const path examples_directory = GetImagePlaygroundRoot() / "examples";
+  const path default_output_directory = examples_directory / default_output;
+  const path default_assets_directory = examples_directory / default_assets;
+
+  // TODO: This could be specified by the user
+  const path output_directory = default_output_directory;
+
+  path input_file_path;
   if (argc < 2) {
-    input_file = examples_directory / default_image;
+    input_file_path = default_assets_directory / default_image_name;
   } else {
-    input_file = std::filesystem::path(argv[1]);
+    input_file_path = path(argv[1]);
   }
 
-  std::filesystem::path fourier_file =
-      examples_directory / default_fourier_image;
-
-  std::filesystem::path output_fourier_file =
-      examples_directory / default_output_fourier_image;
-
-  std::filesystem::path output_file = examples_directory / default_output_image;
-
-  std::filesystem::path blur_fourier_file =
-      examples_directory / default_blur_fourier_image;
-
-  std::filesystem::path blur_file = examples_directory / default_blur_image;
-
-  std::optional<RGBImage> image_optional = RGBImageFromFile(input_file);
+  optional<RGBImage> image_optional = RGBImageFromFile(input_file_path);
 
   if (!image_optional) {
     return 1;
   }
 
-  const RGBImage image = std::move(*image_optional);
+  const string file_stem = input_file_path.stem();
+
+  const RGBImage image = move(*image_optional);
   const FloatImage gray_image = MakeGrayScaleImage(image);
 
+  const string fourier_file_name = file_stem + "_fourier.png";
   const FloatImage input_fourier = FourierTransformForVisualizing(gray_image);
-  WriteImageToPNG(input_fourier, fourier_file);
+  WriteImageToPNG(input_fourier, output_directory / fourier_file_name);
 
+  const string blur_file_name = file_stem + "_blur.png";
   const FloatImage blur_image = MakeBlurImage(gray_image);
-  WriteImageToPNG(blur_image, blur_file);
+  WriteImageToPNG(blur_image, output_directory / blur_file_name);
 
+  const string blur_fourier_file_name = file_stem + "_blur_fourier.png";
   const FloatImage blur_fourier = FourierTransformForVisualizing(blur_image);
-  WriteImageToPNG(blur_fourier, blur_fourier_file);
+  WriteImageToPNG(blur_fourier, output_directory / blur_fourier_file_name);
 
+  const string edge_file_name = file_stem + "_edges.png";
   const FloatImage edge_image = MakeEdgeImage(gray_image);
-  WriteImageToPNG(edge_image, output_file);
+  WriteImageToPNG(edge_image, output_directory / edge_file_name);
 
-  const FloatImage output_fourier = FourierTransformForVisualizing(edge_image);
-  WriteImageToPNG(output_fourier, output_fourier_file);
+  const string edge_fourier_file_name = file_stem + "_edges_fourier.png";
+  const FloatImage edge_fourier = FourierTransformForVisualizing(edge_image);
+  WriteImageToPNG(edge_fourier, output_directory / edge_fourier_file_name);
 
   return 0;
 }
