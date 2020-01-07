@@ -2,7 +2,6 @@
 #include "image_playground/math.h"
 
 #include <cassert>
-#include <cstring>
 
 FloatImage Convolve(const FloatImage &input, const float *const kernel,
                     const int kernel_width) {
@@ -18,10 +17,10 @@ FloatImage Convolve(const FloatImage &input, const float *const kernel,
 
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < cols; col++) {
-      const int start_col = max(col - kernel_half_width, 0);
-      const int start_row = max(row - kernel_half_width, 0);
-      const int end_col = min(col + kernel_half_width, cols - 1);
-      const int end_row = min(row + kernel_half_width, rows - 1);
+      const int start_col = Max(col - kernel_half_width, 0);
+      const int start_row = Max(row - kernel_half_width, 0);
+      const int end_col = Min(col + kernel_half_width, cols - 1);
+      const int end_row = Min(row + kernel_half_width, rows - 1);
 
       const int kernel_start_row = row - kernel_half_width;
       const int kernel_start_col = col - kernel_half_width;

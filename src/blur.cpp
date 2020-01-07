@@ -1,7 +1,7 @@
 #include "image_playground/blur.h"
 #include "image_playground/convolve.h"
 
-#include <cmath>
+#include <cmath> // exp
 
 #define PI 3.14159265359f
 

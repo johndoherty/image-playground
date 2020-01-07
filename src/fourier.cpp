@@ -1,7 +1,8 @@
 #include "image_playground/fourier.h"
+#include "image_playground/math.h"
 
-#include <math.h>
-#include <vector>
+#include <cassert>
+#include <cmath>
 
 #define PI 3.14159265359f
 
@@ -79,8 +80,8 @@ void ScaleImageRange(FloatImage &image) {
 
   for (int i = 0; i < size; i++) {
     const float value = image.data[i];
-    max = std::max(max, value);
-    min = std::min(min, value);
+    max = Max(max, value);
+    min = Min(min, value);
   }
 
   const float range = max - min;

@@ -1,9 +1,6 @@
 #include "image_playground/color.h"
 #include "image_playground/math.h"
 
-#include <cmath>
-#include <stdlib.h>
-
 HSL RGBtoHSL(const RGB &in) {
   const float kEpsilon = 0.00001f;
 

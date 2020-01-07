@@ -2,6 +2,7 @@
 #include "image_playground/convolve.h"
 #include "image_playground/math.h"
 
+#include <cmath> // exp
 #include <vector>
 
 #define PI 3.14159265359f

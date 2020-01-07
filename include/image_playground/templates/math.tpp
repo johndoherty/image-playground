@@ -1,11 +1,10 @@
 #pragma once
 
-#include <cmath>
 #include <stdlib.h>
 
-template <typename T> T max(const T &a, const T &b) { return (a > b) ? a : b; }
+template <typename T> T Max(const T &a, const T &b) { return (a > b) ? a : b; }
 
-template <typename T> T min(const T &a, const T &b) { return (a < b) ? a : b; }
+template <typename T> T Min(const T &a, const T &b) { return (a < b) ? a : b; }
 
 template <typename T> T Abs(const T &a) { return (a < T(0)) ? (T(-1) * a) : a; }
 
