@@ -40,10 +40,10 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  const string file_stem = input_file_path.stem();
-
   const RGBImage image = move(*image_optional);
   const FloatImage gray_image = MakeGrayScaleImage(image);
+
+  const string file_stem = input_file_path.stem();
 
   const string fourier_file_name = file_stem + "_fourier.png";
   const FloatImage input_fourier = FourierTransformForVisualizing(gray_image);

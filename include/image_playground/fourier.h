@@ -4,5 +4,8 @@
 
 void FourierTransform(const FloatImage &image, FloatImage &real,
                       FloatImage &imaginary);
-FloatImage InverseFourierTransform(const FloatImage &image);
+
+FloatImage InverseFourierTransform(const FloatImage &real,
+                                   const FloatImage &imaginary);
+
 FloatImage FourierTransformForVisualizing(const FloatImage &image);

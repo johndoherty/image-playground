@@ -8,6 +8,8 @@ template <typename T> T Min(const T &a, const T &b) { return (a < b) ? a : b; }
 
 template <typename T> T Abs(const T &a) { return (a < T(0)) ? (T(-1) * a) : a; }
 
+template <typename T> T AbsDiff(const T &a, const T &b) { return Abs(a - b); }
+
 inline float Random(float min, float max) {
   const float range = max - min;
   const float random_float =

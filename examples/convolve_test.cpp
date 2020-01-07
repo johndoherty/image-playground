@@ -1,10 +1,9 @@
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
 
 #include "image_playground/convolve.h"
 #include "image_playground/image.h"
+#include "image_playground/math.h"
 
 int main(int argc, char *argv[]) {
   constexpr int kImageDimension = 100;
