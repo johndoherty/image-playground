@@ -15,8 +15,10 @@ int main(int argc, char *argv[]) {
     test_image.data[i] = static_cast<float>(i) / test_image_size;
   }
 
-  Kernel<3> kernel{{0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f}};
-  const FloatImage identity = Convolve(test_image, kernel);
+  constexpr int kKernelWidth = 3;
+  constexpr int kKernelSize = kKernelWidth * kKernelWidth;
+  float kernel[kKernelSize] = {0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f};
+  const FloatImage identity = Convolve(test_image, kernel, kKernelWidth);
 
   int mismatch_count = 0;
   for (int i = 0; i < test_image_size; i++) {

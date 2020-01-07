@@ -46,7 +46,7 @@ float GuassianKernelValue(float mid_x, float mid_y, float standard_deviation) {
 }
 
 template <int KernelWidth>
-void MakeKernel(float standard_deviation, Kernel<KernelWidth> &kernel) {
+void MakeKernel(float standard_deviation, float *kernel) {
   static_assert(KernelWidth % 2 != 0, "Only odd sized kernels are allowed\n");
 
   constexpr int kCenterPoint = KernelWidth / 2;
@@ -57,7 +57,7 @@ void MakeKernel(float standard_deviation, Kernel<KernelWidth> &kernel) {
       const float x = static_cast<float>(col - kCenterPoint);
       const float y = static_cast<float>(row - kCenterPoint);
       const float value = GuassianKernelValue(x, y, standard_deviation);
-      kernel.values[index++] = value;
+      kernel[index++] = value;
     }
   }
 }
@@ -66,9 +66,10 @@ void MakeKernel(float standard_deviation, Kernel<KernelWidth> &kernel) {
 
 FloatImage MakeBlurImage(const FloatImage &input) {
   constexpr int kKernelWidth = 21;
+  constexpr int kKernelSize = kKernelWidth * kKernelWidth;
   constexpr float kSTD = 8;
 
-  Kernel<kKernelWidth> kernel{};
+  float kernel[kKernelSize];
   MakeKernel<kKernelWidth>(kSTD, kernel);
-  return Convolve(input, kernel);
+  return Convolve(input, kernel, kKernelWidth);
 }

@@ -11,11 +11,11 @@ add_subdirectory(external)
 
 set(SOURCE
     src/blur.cpp
+    src/convolve.cpp
     src/edges.cpp
     src/file_helpers.cpp
     src/fourier.cpp
-    src/gray_scale.cpp
-    src/image.cpp)
+    src/gray_scale.cpp)
 
 add_library(image_playground ${SOURCE})
 target_include_directories(image_playground PUBLIC include)

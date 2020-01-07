@@ -85,7 +85,7 @@ float GuassianKernelValue(float mid_x, float mid_y, float standard_deviation) {
 }
 
 template <int KernelWidth>
-void MakeKernel(float standard_deviation, Kernel<KernelWidth> &kernel) {
+void MakeKernel(float standard_deviation, float *kernel) {
   static_assert(KernelWidth % 2 != 0, "Only odd sized kernels are allowed\n");
 
   constexpr int kCenterPoint = KernelWidth / 2;
@@ -96,7 +96,7 @@ void MakeKernel(float standard_deviation, Kernel<KernelWidth> &kernel) {
       const float x = static_cast<float>(col - kCenterPoint);
       const float y = static_cast<float>(row - kCenterPoint);
       const float value = GuassianKernelValue(x, y, standard_deviation);
-      kernel.values[index++] = value;
+      kernel[index++] = value;
     }
   }
 }
@@ -120,17 +120,18 @@ void PrintImageValues(const FloatImage &image) {
 
 FloatImage MakeEdgeImage(const FloatImage &input) {
   constexpr int kKernelWidth = 11;
+  constexpr int kKernelSize = kKernelWidth * kKernelWidth;
   constexpr float kInnerSTD = 1;
   constexpr float kOuterSTD = 3;
 
-  Kernel<kKernelWidth> inner_kernel{};
+  float inner_kernel[kKernelSize];
   MakeKernel<kKernelWidth>(kInnerSTD, inner_kernel);
 
-  Kernel<kKernelWidth> outer_kernel{};
+  float outer_kernel[kKernelSize];
   MakeKernel<kKernelWidth>(kOuterSTD, outer_kernel);
 
-  const FloatImage inner = Convolve(input, inner_kernel);
-  const FloatImage outer = Convolve(input, outer_kernel);
+  const FloatImage inner = Convolve(input, inner_kernel, kKernelWidth);
+  const FloatImage outer = Convolve(input, outer_kernel, kKernelWidth);
 
   const int image_size = input.rows * input.cols;
   FloatImage result = CopyImage(inner);
