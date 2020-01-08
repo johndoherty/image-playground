@@ -16,7 +16,8 @@ set(SOURCE
     src/edges.cpp
     src/file_helpers.cpp
     src/fourier.cpp
-    src/gray_scale.cpp)
+    src/gray_scale.cpp
+    src/profile.cpp)
 
 add_library(image_playground ${SOURCE})
 target_include_directories(image_playground PUBLIC include)

@@ -1,15 +1,34 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "image_playground/file_helpers.h"
 #include "image_playground/fourier.h"
 #include "image_playground/gray_scale.h"
 #include "image_playground/image.h"
 #include "image_playground/math.h"
+#include "image_playground/profile.h"
 
-static constexpr float kEpsilon = 0.001f;
+#include <cmath>
+#include <stdio.h>
+#include <stdlib.h>
 
+static constexpr float kPi = 3.14159265359f;
+static constexpr float kEpsilon = 0.01f;
 const char *test_image_name = "assets/cln1.jpg";
+
+// Recommended, but it takes a while.
+static constexpr bool kCompareToGroundTruth = false;
+
+int CompareImages(const FloatImage &test, const FloatImage &gt,
+                  const float epsilon);
+
+bool VerifyGroundTruth(const FloatImage &image, FloatImage &fourier_real,
+                       FloatImage &fourier_imaginary);
+
+void GTFourierTransform(const FloatImage &image, FloatImage &real,
+                        FloatImage &imaginary);
+
+void GTInverseFourierTransform(const FloatImage &real,
+                               const FloatImage &imaginary,
+                               FloatImage &real_result,
+                               FloatImage &imaginary_result);
 
 int main(int argc, char *argv[]) {
   const std::filesystem::path test_image_path =
@@ -27,27 +46,101 @@ int main(int argc, char *argv[]) {
   const RGBImage image = std::move(*image_optional);
   const FloatImage gray = MakeGrayScaleImage(image);
 
+  const int image_size = image.rows * image.cols;
+
   FloatImage fourier_real(image.rows, image.cols);
   FloatImage fourier_imaginary(image.rows, image.cols);
   FourierTransform(gray, fourier_real, fourier_imaginary);
 
-  const FloatImage inverse_fourier =
-      InverseFourierTransform(fourier_real, fourier_imaginary);
+  const FloatImage visualization_image =
+      VisualizationOutput(fourier_real, fourier_imaginary);
+  WriteImageToPNG(visualization_image, output_directory / "fourier.png");
+
+  FloatImage filtered_fourier_real(image.rows, image.cols);
+  FloatImage filtered_fourier_imaginary(image.rows, image.cols);
+
+  for (int row = 0; row < fourier_real.rows; row++) {
+    for (int col = 0; col < fourier_real.cols; col++) {
+      const int index = (row * fourier_real.cols) + col;
+      if (row < 100 && col < 100) {
+        filtered_fourier_real.data[index] = fourier_real.data[index];
+        filtered_fourier_imaginary.data[index] = fourier_imaginary.data[index];
+      } else {
+        filtered_fourier_real.data[index] = 0.f;
+        filtered_fourier_imaginary.data[index] = 0.f;
+      }
+    }
+  }
+
+  const FloatImage inverse_fourier = InverseFourierTransform(
+      filtered_fourier_real, filtered_fourier_imaginary);
 
   WriteImageToPNG(inverse_fourier, output_directory / "inverse_fourier.png");
 
-  const int image_size = image.rows * image.cols;
+  int error_count = CompareImages(inverse_fourier, gray, kEpsilon);
+  printf("Errors in inverse transform: %d / %d\n", error_count, image_size);
+
+  if (kCompareToGroundTruth) {
+    FloatImage fourier_real_gt(image.rows, image.cols);
+    FloatImage fourier_imaginary_gt(image.rows, image.cols);
+
+    const bool valid_gt =
+        VerifyGroundTruth(gray, fourier_real_gt, fourier_imaginary_gt);
+    assert(valid_gt);
+
+    const int real_fourier_errors =
+        CompareImages(fourier_real, fourier_real_gt, kEpsilon);
+    const int imaginary_fourier_errors =
+        CompareImages(fourier_imaginary, fourier_imaginary_gt, kEpsilon);
+
+    printf("Fourier errors. Real: %d / %d. Imaginary: %d / %d\n",
+           real_fourier_errors, image_size, imaginary_fourier_errors,
+           image_size);
+  }
+
+  return 0;
+}
+
+int CompareImages(const FloatImage &a, const FloatImage &b,
+                  const float percent_epsilon) {
+  assert(a.rows == b.rows && a.cols == b.cols);
+  const int image_size = b.rows * b.cols;
 
   int error_count = 0;
   for (int i = 0; i < image_size; i++) {
-    if (AbsDiff(inverse_fourier.data[i], gray.data[i]) > kEpsilon) {
+    const float diff = AbsDiff(a.data[i], b.data[i]);
+    const float percent_diff = diff / a.data[i];
+    if (percent_diff > percent_epsilon) {
+      const int row = (i / a.cols);
+      const int col = (i % a.cols);
+      printf("(%d, %d): %f -> %f (%f %%)\n", row, col, a.data[i], b.data[i],
+             (percent_diff * 100.f));
       error_count++;
     }
   }
 
-  printf("Errors: %d / %d\n", error_count, image_size);
+  return error_count;
+}
 
-  return 0;
+bool VerifyGroundTruth(const FloatImage &image, FloatImage &fourier_real,
+                       FloatImage &fourier_imaginary) {
+  const int image_size = image.rows * image.cols;
+
+  Profiler p;
+  p.Start();
+  GTFourierTransform(image, fourier_real, fourier_imaginary);
+  p.EndAndPrintElapsedUS("GT Fourier Timing");
+
+  FloatImage inverse_fourier_real(image.rows, image.cols);
+  FloatImage inverse_fourier_imaginary(image.rows, image.cols);
+  p.Start();
+  GTInverseFourierTransform(fourier_real, fourier_imaginary,
+                            inverse_fourier_real, inverse_fourier_imaginary);
+  p.EndAndPrintElapsedUS("GT Inverse Fourier Timing");
+
+  int error_count = CompareImages(inverse_fourier_real, image, kEpsilon);
+  printf("GT Errors: %d / %d\n", error_count, image_size);
+  return (error_count > 0);
 }
 
 void GTFourierTransform(const FloatImage &image, FloatImage &real,
@@ -55,32 +148,40 @@ void GTFourierTransform(const FloatImage &image, FloatImage &real,
   assert(real.rows == image.rows && real.cols == image.cols);
   assert(imaginary.rows == image.rows && imaginary.cols == image.cols);
 
+  constexpr float kNegTwoPi = -2.f * kPi;
+
   const float rows_float = static_cast<float>(image.rows);
   const float cols_float = static_cast<float>(image.cols);
 
+  const float rows_inv = 1.f / rows_float;
+  const float cols_inv = 1.f / cols_float;
+
   for (int output_row = 0; output_row < image.rows; output_row++) {
-    printf("slow fourier row: %d / %d\n", output_row, image.rows);
+    printf("Ground truth fourier row: %d / %d\n", output_row, image.rows);
     const float output_row_float = static_cast<float>(output_row);
     for (int output_col = 0; output_col < image.cols; output_col++) {
       const float output_col_float = static_cast<float>(output_col);
 
       float real_sum = 0.f;
       float imaginary_sum = 0.f;
+      int input_index = 0;
 
       for (int input_row = 0; input_row < image.rows; input_row++) {
         const float input_row_float = static_cast<float>(input_row);
-        for (int input_col = 0; input_col < image.cols; input_col++) {
+
+        const float output_input_row =
+            output_row_float * input_row_float * rows_inv;
+
+        for (int input_col = 0; input_col < image.cols;
+             input_col++, input_index++) {
           const float input_col_float = static_cast<float>(input_col);
-          const int input_index = (input_row * image.cols) + input_col;
           const float input_value = image.data[input_index];
 
-          const float output_input_row =
-              (output_row_float * input_row_float) / rows_float;
           const float output_input_col =
-              output_col_float * input_col_float / cols_float;
+              output_col_float * input_col_float * cols_inv;
 
           const float exponent =
-              -2.f * PI * (output_input_row + output_input_col);
+              kNegTwoPi * (output_input_row + output_input_col);
           real_sum += input_value * cos(exponent);
           imaginary_sum += input_value * sin(exponent);
         }
@@ -111,7 +212,7 @@ void GTInverseFourierTransform(const FloatImage &real,
   const float size_float = static_cast<float>(size);
 
   for (int output_row = 0; output_row < rows; output_row++) {
-    printf("slow inverse fourier row: %d / %d\n", output_row, rows);
+    printf("Ground truth inverse fourier row: %d / %d\n", output_row, rows);
     const float output_row_float = static_cast<float>(output_row);
     for (int output_col = 0; output_col < cols; output_col++) {
       const float output_col_float = static_cast<float>(output_col);
@@ -134,7 +235,7 @@ void GTInverseFourierTransform(const FloatImage &real,
               output_col_float * input_col_float / cols_float;
 
           const float exponent =
-              2.f * PI * (output_input_row + output_input_col);
+              2.f * kPi * (output_input_row + output_input_col);
 
           const float cos_exp = cos(exponent);
           const float sin_exp = sin(exponent);
