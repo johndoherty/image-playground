@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 
   for (int row = 0; row < fourier_real.rows; row++) {
     for (int col = 0; col < fourier_real.cols; col++) {
-      const int index = (row * fourier_real.cols) + col;
+      const int index = ComputeIndex(fourier_real, row, col);
       if (row < 100 && col < 100) {
         filtered_fourier_real.data[index] = fourier_real.data[index];
         filtered_fourier_imaginary.data[index] = fourier_imaginary.data[index];

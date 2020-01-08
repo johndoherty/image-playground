@@ -40,8 +40,21 @@ template <typename T> int ComputeImageSizeBytes(const Image<T> &image) {
   return image.cols * image.rows * sizeof(T);
 }
 
+template <typename T>
+int ComputeIndex(const Image<T> &image, int row, int col) {
+  return (row * src.cols) + col;
+}
+
 template <typename T> Image<T> CopyImage(const Image<T> &src) {
   Image<T> dst(src.rows, src.cols);
   memcpy(dst.data, src.data, ComputeImageSizeBytes(src));
   return dst;
+}
+
+template <typename T> T &GetPixel(Image<T> &src, int row, int col) {
+  return src.data[ComputeIndex(src, row, col)];
+}
+
+template <typename T> const T &GetPixel(const Image<T> &src, int row, int col) {
+  return src.data[ComputeIndex(src, row, col)];
 }
