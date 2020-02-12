@@ -56,24 +56,8 @@ int main(int argc, char *argv[]) {
       VisualizationOutput(fourier_real, fourier_imaginary);
   WriteImageToPNG(visualization_image, output_directory / "fourier.png");
 
-  FloatImage filtered_fourier_real(image.rows, image.cols);
-  FloatImage filtered_fourier_imaginary(image.rows, image.cols);
-
-  for (int row = 0; row < fourier_real.rows; row++) {
-    for (int col = 0; col < fourier_real.cols; col++) {
-      const int index = ComputeIndex(fourier_real, row, col);
-      if (row < 100 && col < 100) {
-        filtered_fourier_real.data[index] = fourier_real.data[index];
-        filtered_fourier_imaginary.data[index] = fourier_imaginary.data[index];
-      } else {
-        filtered_fourier_real.data[index] = 0.f;
-        filtered_fourier_imaginary.data[index] = 0.f;
-      }
-    }
-  }
-
-  const FloatImage inverse_fourier = InverseFourierTransform(
-      filtered_fourier_real, filtered_fourier_imaginary);
+  const FloatImage inverse_fourier =
+      InverseFourierTransform(fourier_real, fourier_imaginary);
 
   WriteImageToPNG(inverse_fourier, output_directory / "inverse_fourier.png");
 
